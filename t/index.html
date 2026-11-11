@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Globite tarifi</title>
+<style>
+  :root { --zemin: #FFFFFF; --yazi: #1F2A22; --soluk: #5B6B5E; --ana: #D23A26; --anaYazi: #FFFFFF; --yuzey: #F3F6F1; --yesil: #2B7A47; }
+  @media (prefers-color-scheme: dark) { :root { --zemin: #241726; --yazi: #F3E7D3; --soluk: #CDBAC9; --ana: #E8A317; --anaYazi: #241726; --yuzey: #34223A; --yesil: #8DB255; } }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--zemin); color: var(--yazi); font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  main { max-width: 480px; margin: 0 auto; padding: 40px 20px; display: flex; flex-direction: column; gap: 18px; }
+  .marka { font-weight: 800; font-size: 20px; color: var(--ana); letter-spacing: -0.3px; }
+  h1 { margin: 0; font-size: 30px; line-height: 1.15; letter-spacing: -0.6px; }
+  p { margin: 0; color: var(--soluk); line-height: 1.5; }
+  .dugme { display: block; text-align: center; text-decoration: none; background: var(--ana); color: var(--anaYazi); font-weight: 700; padding: 16px; border-radius: 28px; font-size: 17px; }
+  .kutu { background: var(--yuzey); border-radius: 18px; padding: 16px; }
+  .gizli { display: none; }
+</style>
+</head>
+<body>
+<main>
+  <div class="marka">Globite</div>
+  <h1 id="ad">Bir tarif seninle paylaşıldı</h1>
+  <p id="aciklama">Tarif Globite uygulamasında açılıyor…</p>
+  <a id="ac" class="dugme" href="#">Globite'ta aç</a>
+  <div id="yok" class="kutu gizli">
+    <p><strong>Globite telefonunda yüklü değil gibi görünüyor.</strong> Globite; günün menüsünü öneren, elindeki malzemelerle tarif bulan bir yemek uygulaması. Yakında Google Play'de. Uygulama yüklüyse yukarıdaki düğmeye dokun.</p>
+  </div>
+</main>
+<script>
+  // Globite tarif paylaşımı (2026-11-11). Bağlantı: /t/?id=<tarif kimliği>&ad=<tarif adı>
+  // Android'de Chrome "intent://" ile uygulamayı açar; yüklü değilse bu sayfaya ?yok=1 ile döner.
+  // Kimlik sadece küçük harf, rakam ve tire olabilir; ad sadece düz metin olarak yazılır (kod çalıştırılmaz).
+  (function () {
+    var q = new URLSearchParams(location.search);
+    var id = q.get('id') || '';
+    if (!/^[a-z0-9-]{1,64}$/.test(id)) {
+      document.getElementById('aciklama').textContent = 'Bağlantı eksik ya da hatalı.';
+      document.getElementById('ac').classList.add('gizli');
+      return;
+    }
+    var ad = (q.get('ad') || '').slice(0, 80);
+    if (ad) { document.getElementById('ad').textContent = ad; document.title = ad + ' · Globite'; }
+    var geri = location.origin + location.pathname + '?id=' + encodeURIComponent(id) + (ad ? '&ad=' + encodeURIComponent(ad) : '') + '&yok=1';
+    var android = /android/i.test(navigator.userAgent);
+    var hedef = android
+      ? 'intent://tarif/' + id + '#Intent;scheme=globite;package=com.ereny.globite;S.browser_fallback_url=' + encodeURIComponent(geri) + ';end'
+      : 'globite://tarif/' + id;
+    document.getElementById('ac').setAttribute('href', hedef);
+    if (q.get('yok') === '1') {
+      document.getElementById('aciklama').textContent = 'Bu tarifi görmek için Globite uygulaması gerekiyor.';
+      document.getElementById('yok').classList.remove('gizli');
+      return;
+    }
+    if (android) location.replace(hedef);
+    else {
+      document.getElementById('aciklama').textContent = 'Globite şimdilik sadece Android telefonlarda var.';
+      document.getElementById('yok').classList.remove('gizli');
+    }
+  })();
+</script>
+</body>
+</html>
